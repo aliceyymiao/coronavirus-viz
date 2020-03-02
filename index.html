@@ -4,13 +4,90 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="map.js"></script>
   <style>
-    #nygeo path{
-      fill: darkgrey;
-      stroke: black;
+    @import url('https://fonts.googleapis.com/css?family=Anton&display=swap');
+    
+    h1 {
+      font-family: 'Anton';
+      margin-left: 100px;
     }
+    #chinageo path{
+      fill: darkgrey;
+      stroke: white;
+    }
+
+    div.tooltip {
+            position: absolute;
+            text-align: left;
+            width: auto;
+            height: auto;
+            padding: 5px;
+            font-size: 10px;
+            font-family: sans-serif;
+            background:linen;
+            border: 0px;
+            border-radius: 5px;
+            pointer-events: none;
+    }
+
+    svg {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #graph-container {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            margin: 30px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        #tool-bar {
+            display: flex;
+            flex-direction: column;
+            border: 1.5px solid black;
+        }
+
+        select {
+            font-size: 13px;
+            margin: 10px 20px;
+            margin-top: 0px;
+            background-color: white;
+            border: 2px solid;
+            border-radius: 0;
+            width: 100px;
+        }
+
+        option {
+            padding: 10px;
+            border: 10px;
+        }
+
+        h2 {
+            text-align: left;
+            font-size: 13px;
+            margin: 20px;
+            margin-bottom: 5px;
+        }
   </style>
 </head>
 <body>
-
+   <h1>COVID-19 in China by 2020/2/2</h1>
+   <div id="graph-container">
+    <div id="graph"></div>
+    <div id="tool-bar">
+      <label>
+        <h2>Comfirmed Population</h2>
+        <select name="confirmed" id="confirmed">
+            <option value="-1">(All)</option>
+            <option value="1">&lt 38</option>
+            <option value="2">38 - 104</option>
+            <option value="3">104 - 236</option>
+            <option value="4">&gt 236</option>
+        </select>
+      </label>
+    </div>
+    </div>
 </body>
 </html>
