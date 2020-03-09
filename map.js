@@ -1,8 +1,15 @@
 "use-strict";
 
-var width = 700,
+let width = 700,
     height = 580;
 
+const small_msm = {
+    width: 600,
+    height: 300,
+    marginAll: 50,
+}
+
+let data_total = "";
 let svg = "";
 let chinageo = "";
 let albersProjection = "";
@@ -66,16 +73,22 @@ function makeMap(data) {
 
 function makeCircles(data) {
     d3.selectAll('circle').remove();
-    let div = d3.select("#graph")
-                    .append("div")
-                    .attr("class", "tooltip")
-                    .style("opacity", 0)
+
     albersProjection = d3.geoAlbers()
     .scale( 800 )
     .rotate( [-104.1954,0] )
     .center( [0, 35.8617] )
     .translate( [width/2,height/2] );
-    var provinces = svg.append( "g" ).attr( "id", "province" );
+
+    let div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    let toolChart = div.append('svg')
+        .attr('width', small_msm.width)
+        .attr('height', small_msm.height)
+
+    let provinces = svg.append( "g" ).attr( "id", "province" );
     provinces.selectAll('.dot')
         .data( data )
         .enter()
@@ -105,21 +118,99 @@ function makeCircles(data) {
         //     })
         // });
         .on("mouseover", (d) => {
+            toolChart.selectAll("*").remove()
             div.transition()
                 .duration(200)
                 .style("opacity", 0.9);
-            let prompt = 'Confirmed: ' + d['Confirmed'] + '<br/>' + 'Death: ' + d['Death'] + '<br/>'
-            + 'Recovered: ' + d['Recovered'] + '<br/>'
-            + 'Last Update: ' + d['Last Update']
-            div.html(prompt)
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY + 20) + "px");
+            let province = d["Province/State"];
+            plotLinechart(province,toolChart)
+            div.style("left", (d3.event.pageX) + "px")
+               .style("top", (d3.event.pageY + 20) + "px");
         })
         .on("mouseout", (d) => {
             div.transition()
                 .duration(500)
                 .style("opacity", 0)
         })
+}
+
+function plotLinechart(province, toolChart) {
+    // parse the date / time
+    let parseTime = d3.timeParse("%m/%d/%Y %H:%M:%S");
+
+    // set the ranges
+    let x = d3.scaleTime().range([0 + small_msm.marginAll, small_msm.width - small_msm.marginAll]);
+    let y = d3.scaleLinear().range([0 + small_msm.marginAll, small_msm.height - small_msm.marginAll]);
+
+    // define the 1st line
+    let recoveredLine = d3.line()
+                      .x(function(d) { return x(d.Date); })
+                      .y(function(d) { return y(d.Recovered); });
+
+    // define the 2nd line
+    let confirmedLine = d3.line()
+                      .x(function(d) { return x(d.Date); })
+                      .y(function(d) { return y(d.Confirmed); });
+
+    d3.csv("2019_nCoV_data.csv", function(error, data) {
+      if (error) throw error;
+
+      let data_province = data.filter((data) => {return data["Province/State"] == province });
+
+      data_province.forEach(function(d) {
+        d.Date = parseTime(d.Date);
+        d.Recovered = +d.Recovered;
+        d.Confirmed = +d.Confirmed;
+      });
+
+      x.domain(d3.extent(data_province, function(d) { return d.Date; }));
+      y.domain([d3.max(data_province, function(d) { return Math.max(d.Recovered, d.Confirmed); }) , 0]);
+
+      toolChart.append("path")
+         .datum(data_province)
+         .attr("fill", "none")
+         .attr("stroke", "green")
+         .attr("stroke-width", 1.5)
+         .attr("class", "line")
+         .attr("d", recoveredLine);
+
+      toolChart.append("path")
+         .datum(data_province)
+         .attr("fill", "none")
+         .attr("class", "line")
+         .style("stroke", "red")
+         .attr("stroke-width", 1.5)
+         .attr("d", confirmedLine);
+
+      toolChart.append("g")
+          .attr("transform", "translate(0," + (small_msm.height - small_msm.marginAll) + ")")
+          .call(d3.axisBottom(x));
+
+      toolChart.append("g")
+          .attr('transform', 'translate(' + small_msm.marginAll + ', 0)')
+          .call(d3.axisLeft(y));
+
+      makeLabels(toolChart, small_msm, "Recovered(Green) vs. Confirmed(Red)", "Date", "Count Number");
+    })
+}
+
+function makeLabels(svgContainer, msm, title, x, y) {
+  svgContainer.append('text')
+      .attr('x', (msm.width - 5 * msm.marginAll) / 2)
+      .attr('y', msm.marginAll / 2 + 10)
+      .style('font-size', '10pt')
+      .text(title);
+
+  svgContainer.append('text')
+      .attr('x', (msm.width - 0.5 * msm.marginAll) / 2 - 30)
+      .attr('y', msm.height - 10)
+      .style('font-size', '10pt')
+      .text(x);
+
+  svgContainer.append('text')
+      .attr('transform', 'translate( 15,' + (msm.height / 2 + 30) + ') rotate(-90)')
+      .style('font-size', '10pt')
+      .text(y);
 }
 
 function id(name) {
@@ -141,6 +232,3 @@ function filterData(data) {
     }
     makeCircles(currData)
 }
-
-
-
