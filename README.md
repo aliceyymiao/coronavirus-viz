@@ -19,7 +19,7 @@ about this peculiar and terrifying virus that has had a great impact on the live
 Link to visualization: https://aliceyymiao.github.io/coronavirus-viz/map-viz/
 
 * We used d3 to create a line graph showing the number of confirmed cases in relation to time in Hubei.
-Link to visualization: https://aliceyymiao.github.io/coronavirus-viz/map-viz/
+Link to visualization: https://aliceyymiao.github.io/coronavirus-viz/Line-chart/
 
 * We made a map on Tableau to show the numbers of confirmed, death, and recovered cases around the globe.
 Link: https://public.tableau.com/profile/yining3045#!/vizhome/Info474-FinalProject1/Sheet1
