@@ -15,7 +15,7 @@ all international students from China, we are highly concerned about this novel 
 the numbers of confirmed, death, and recovered cases change over time and see how it spread geographically to gain insights 
 about this peculiar and terrifying virus that has had a great impact on the lives of a myriad of people around the globe up to now.
 
-* We used d3 to create a map with circles showing the provinces of China that have people infected by COVID-19 by 2/2/2020.
+* We used d3 to create a map with circles showing the provinces of China that have people infected by COVID-19 by 2/4/2020.
 Link to visualization: https://aliceyymiao.github.io/coronavirus-viz/map-viz/
 
 * We used d3 to create a line graph showing the number of confirmed cases in relation to time in Hubei.
