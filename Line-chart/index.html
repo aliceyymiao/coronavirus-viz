@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+</style>
+<body>
+  <h1>Line Chart</h1>
+  <button id="start" style="position: absolute; margin-left: 6px; margin-top: 6px;">Start Time Animation</button>
+  <button id="reset" style="position: absolute; margin-left: 150px; margin-top: 6px">Reset</button>
+  <p style="position: absolute; margin-left: 212px; margin-top: 12px; text-size: 12px">Start animation, then hover over line to see viz-tooltip after line is drawn.</p>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+const margin = {top: 60, right: 50, bottom: 30, left: 50},
+    width = 700 - margin.left - margin.right,
+    height = 365 - margin.top - margin.bottom;
+
+const small_msm = {
+    width: 200,
+    height: 200,
+    marginAll: 50,
+    marginLeft: 50
+}
+
+const padding = [0, 20, 50, 120]; // Top Right Bottom Left
+
+// Adjust parsing of data to properly show tooltip
+let parseDate = d3.time.format("%m/%d/%Y %H:%M:%S").parse,
+    bisectDate = d3.bisector(function(d) { return d.Date; }).left,
+    formatValue = d3.format(","),
+    formatCurrency = function(d) { return formatValue(d); };
+
+let x = d3.time.scale()
+    .range([0, width]);
+
+let y = d3.scale.linear()
+    .range([height, 0]);
+
+let xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(d3.time.format('%b-%d'));
+
+let yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+let line = d3.svg.line()
+    .x(function(d) { return x(d.Date); })
+    .y(function(d) { return y(d.Confirmed); });
+
+let svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("2019_nCoV_data.csv", function(error, data) {
+  if (error) throw error;
+  data_hubei = data.filter((data) => {return data["Province/State"] == "Hubei"})
+  console.log(data_hubei);
+
+  data_hubei.forEach(function(d) {
+    d.date = d.Date;
+    d.Date = parseDate(d.Date);
+    d.Confirmed = +d.Confirmed;
+  });
+
+  x.domain(d3.extent(data_hubei, function(d) { return d.Date; }));
+  y.domain(d3.extent(data_hubei, function(d) { return d.Confirmed; }));
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Confirmed Number");
+
+  // Start Animation on Click
+  d3.select("#start").on("click", function() {
+    let path = svg.append("path")
+        .datum(data_hubei)
+        .attr("class", "line")
+        .attr("d", line);
+
+    // letiable to Hold Total Length
+    let totalLength = path.node().getTotalLength();
+
+    // Set Properties of Dash Array and Dash Offset and initiate Transition
+    path
+      .attr("stroke-dasharray", totalLength + " " + totalLength)
+      .attr("stroke-dashoffset", totalLength)
+     .transition() // Call Transition Method
+      .duration(4000) // Set Duration timing (ms)
+      .ease("linear") // Set Easing option
+      .attr("stroke-dashoffset", 0) // Set final value of dash-offset for transition
+
+    // Create SVG for Tooltip and Circle on Mouseover
+    let focus = svg.append("g")
+        .attr("class", "focus")
+        .style("display", "none");
+
+    // Append a circle to show on Mouseover
+    focus.append("circle")
+        .attr("r", 4.5);
+
+    // Append text to show on Mouseover
+    focus.append("text")
+        .attr("x", 9)
+        .attr("dy", ".35em");
+
+    // Append overlay rectangle as container for Circle and Tooltips
+    // that allows user to hover anywhere on graphic
+    svg.append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", function() { focus.style("display", null); })
+        .on("mouseout", function() { focus.style("display", "none"); })
+        .on("mousemove", mousemove);
+
+    //  Mousemove function that sets location and changes properties of Focus SVG
+    function mousemove() {
+      let x0 = x.invert(d3.mouse(this)[0]),
+          i = bisectDate(data_hubei, x0, 1),
+          d0 = data_hubei[i - 1],
+          d1 = data_hubei[i],
+          d = x0 - d0.Date > d1.Date - x0 ? d1 : d0,
+          current_date = d.date;
+      focus.attr("transform", "translate(" + x(d.Date) + "," + y(d.Confirmed) + ")");
+      focus.select("text").text(formatCurrency(d.Confirmed));
+    }
+  });
+
+  // Reset Animation
+  d3.select("#reset").on("click", function() {
+    d3.select(".line").remove();
+    d3.select(".focus").remove();
+  });
+});
+
+</script>
