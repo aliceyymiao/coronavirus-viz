@@ -1,7 +1,7 @@
 # INFO474-FinalProject
 
 Our group will be exploring the research question of "How severely has the coronavirus 
-outbreak impacted Hubei, China, and the globe in the time period from January 21 to March 3rd?"
+outbreak impacted the origin Hubei, then China, and eventually the globe in the time period starting from January 21?"
 We will analyze the relevant data from [Kaggle.com](https://www.kaggle.com/parulpandey/wuhan-coronavirus-a-geographical-analysis).
 
 During December 2019, “coronavirus disease 2019” (abbreviated “COVID-19”) are detected from 
